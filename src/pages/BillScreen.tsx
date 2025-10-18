@@ -1,18 +1,18 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Printer, Trash2 } from 'lucide-react';
-import { useApp } from '@/contexts/AppContext';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { ArrowLeft, Plus, Printer, Trash2 } from "lucide-react";
+import { useApp } from "@/contexts/AppContext";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { toast } from '@/hooks/use-toast';
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { toast } from "@/hooks/use-toast";
 
 export default function BillScreen() {
   const { kudilNumber } = useParams<{ kudilNumber: string }>();
@@ -28,16 +28,16 @@ export default function BillScreen() {
     getKudilTotal,
   } = useApp();
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [selectedProduct, setSelectedProduct] = useState<string>('');
-  const [quantity, setQuantity] = useState<string>('1');
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedProduct, setSelectedProduct] = useState<string>("");
+  const [quantity, setQuantity] = useState<string>("1");
 
-  const kudilId = `kudil${kudilNumber}`;
+  const kudilId = kudilNumber;
   const currentOrder = orders[kudilId] || [];
   const total = getKudilTotal(kudilId);
 
   const filteredProducts = selectedCategory
-    ? products.filter(p => p.categoryId === selectedCategory)
+    ? products.filter((p) => p.categoryId === selectedCategory)
     : [];
 
   const handleAddItem = () => {
@@ -50,7 +50,7 @@ export default function BillScreen() {
       return;
     }
 
-    const product = products.find(p => p.id === selectedProduct);
+    const product = products.find((p) => p.id === selectedProduct);
     if (!product) return;
 
     addOrderItem(kudilId, {
@@ -61,9 +61,9 @@ export default function BillScreen() {
     });
 
     // Reset form
-    setSelectedCategory('');
-    setSelectedProduct('');
-    setQuantity('1');
+    setSelectedCategory("");
+    setSelectedProduct("");
+    setQuantity("1");
 
     toast({
       title: "Item Added",
@@ -161,13 +161,19 @@ export default function BillScreen() {
         </div>
         
         <div class="items">
-          ${currentOrder.map(item => `
+          ${currentOrder
+            .map(
+              (item) => `
             <div class="item-row">
               <span class="item-name">${item.productName}</span>
               <span class="item-qty">x${item.quantity}</span>
-              <span class="item-price">₹${(item.price * item.quantity).toFixed(2)}</span>
+              <span class="item-price">₹${(item.price * item.quantity).toFixed(
+                2
+              )}</span>
             </div>
-          `).join('')}
+          `
+            )
+            .join("")}
         </div>
 
         <div class="total-section">
@@ -186,11 +192,11 @@ export default function BillScreen() {
     `;
 
     // Open print window
-    const printWindow = window.open('', '_blank', 'width=300,height=600');
+    const printWindow = window.open("", "_blank", "width=300,height=600");
     if (printWindow) {
       printWindow.document.write(printContent);
       printWindow.document.close();
-      
+
       // Wait for content to load then print
       printWindow.onload = () => {
         printWindow.focus();
@@ -198,28 +204,32 @@ export default function BillScreen() {
         printWindow.close();
       };
     }
-
+    console.log("Printing bill for kudilId:", kudilId);
     // Save to history via API
     printBill(kudilId);
     toast({
       title: "Bill Printed",
       description: "Bill has been sent to printer and saved to history",
     });
-    
+
     // Navigate after a short delay to ensure print dialog opens
-    setTimeout(() => navigate('/'), 500);
+    setTimeout(() => navigate("/"), 500);
   };
 
   return (
     <div className="p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
-          <Button variant="outline" onClick={() => navigate('/')}>
+          <Button variant="outline" onClick={() => navigate("/")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Kudil {kudilNumber} - Bill</h1>
-            <p className="text-muted-foreground mt-1">Manage billing for this Kudil</p>
+            <h1 className="text-3xl font-bold text-foreground">
+              Kudil {kudilNumber} - Bill
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Manage billing for this Kudil
+            </p>
           </div>
         </div>
 
@@ -227,7 +237,9 @@ export default function BillScreen() {
         <Card className="p-6 mb-6 bg-card">
           <div className="border-b-2 border-dashed border-border pb-4 mb-4">
             <h2 className="text-xl font-bold text-center">ARUVI RESTAURANT</h2>
-            <p className="text-center text-sm text-muted-foreground">Kudil {kudilNumber}</p>
+            <p className="text-center text-sm text-muted-foreground">
+              Kudil {kudilNumber}
+            </p>
           </div>
 
           {currentOrder.length === 0 ? (
@@ -245,15 +257,24 @@ export default function BillScreen() {
               </div>
 
               {currentOrder.map((item) => (
-                <div key={item.productId} className="grid grid-cols-12 gap-2 items-center">
-                  <div className="col-span-5 font-medium">{item.productName}</div>
+                <div
+                  key={item.productId}
+                  className="grid grid-cols-12 gap-2 items-center"
+                >
+                  <div className="col-span-5 font-medium">
+                    {item.productName}
+                  </div>
                   <div className="col-span-2 text-center">
                     <Input
                       type="number"
                       min="1"
                       value={item.quantity}
                       onChange={(e) =>
-                        updateOrderItemQuantity(kudilId, item.productId, parseInt(e.target.value) || 0)
+                        updateOrderItemQuantity(
+                          kudilId,
+                          item.productId,
+                          parseInt(e.target.value) || 0
+                        )
                       }
                       className="w-16 text-center"
                     />
@@ -288,7 +309,10 @@ export default function BillScreen() {
         <Card className="p-6 mb-6">
           <h3 className="text-lg font-semibold mb-4">Add Item</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select Category" />
               </SelectTrigger>

@@ -1,19 +1,19 @@
-import { useState } from 'react';
-import { Calendar, ChevronDown, ChevronUp } from 'lucide-react';
-import { useApp } from '@/contexts/AppContext';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useState } from "react";
+import { Calendar, ChevronDown, ChevronUp } from "lucide-react";
+import { useApp } from "@/contexts/AppContext";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function History() {
   const { history } = useApp();
   const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split('T')[0]
+    new Date().toISOString().split("T")[0]
   );
   const [expandedBills, setExpandedBills] = useState<Set<string>>(new Set());
 
   const filteredHistory = history.filter((entry) => {
-    const entryDate = new Date(entry.timestamp).toISOString().split('T')[0];
+    const entryDate = new Date(entry.timestamp).toISOString().split("T")[0];
     return entryDate === selectedDate;
   });
 
@@ -30,17 +30,17 @@ export default function History() {
   };
 
   const formatTime = (timestamp: number) => {
-    return new Date(timestamp).toLocaleTimeString('en-IN', {
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(timestamp).toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
+    return new Date(timestamp).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
     });
   };
 
@@ -74,8 +74,8 @@ export default function History() {
         <div className="space-y-4">
           {filteredHistory.map((entry) => {
             const isExpanded = expandedBills.has(entry.id);
-            const kudilNumber = entry.kudilId.replace('kudil', '');
-            
+            const kudilNumber = entry.kudilId.replace("kudil", "");
+
             return (
               <Card key={entry.id} className="overflow-hidden">
                 <div
@@ -85,18 +85,27 @@ export default function History() {
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-4">
                       <div>
-                        <h3 className="font-semibold text-lg">Kudil {kudilNumber}</h3>
+                        <h3 className="font-semibold text-lg">
+                          Kudil {kudilNumber}
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          {formatDate(entry.timestamp)} at {formatTime(entry.timestamp)}
+                          {formatDate(entry.timestamp)} at{" "}
+                          {formatTime(entry.timestamp)}
                         </p>
                       </div>
                       <div className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">
-                        {entry.items.reduce((sum, item) => sum + item.quantity, 0)} items
+                        {entry.items.reduce(
+                          (sum, item) => sum + item.quantity,
+                          0
+                        )}{" "}
+                        items
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <p className="text-2xl font-bold text-primary">₹{entry.total}</p>
+                        <p className="text-2xl font-bold text-primary">
+                          ₹{entry.total}
+                        </p>
                       </div>
                       {isExpanded ? (
                         <ChevronUp className="w-5 h-5 text-muted-foreground" />
@@ -117,10 +126,17 @@ export default function History() {
                         <div className="col-span-2 text-right">Total</div>
                       </div>
                       {entry.items.map((item, idx) => (
-                        <div key={idx} className="grid grid-cols-12 gap-2 text-sm">
+                        <div
+                          key={idx}
+                          className="grid grid-cols-12 gap-2 text-sm"
+                        >
                           <div className="col-span-6">{item.productName}</div>
-                          <div className="col-span-2 text-center">{item.quantity}</div>
-                          <div className="col-span-2 text-right">₹{item.price}</div>
+                          <div className="col-span-2 text-center">
+                            {item.quantity}
+                          </div>
+                          <div className="col-span-2 text-right">
+                            ₹{item.price}
+                          </div>
                           <div className="col-span-2 text-right font-semibold">
                             ₹{item.price * item.quantity}
                           </div>
