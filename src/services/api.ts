@@ -1,4 +1,5 @@
-const BASE_URL = 'http://localhost:8080/v1';
+const BASE_URL = 'http://aruvi-salem-env.eba-ymet39eb.eu-north-1.elasticbeanstalk.com/v1'
+//window.location.origin + '/v1';
 
 interface ApiResponse<T> {
   success: boolean;

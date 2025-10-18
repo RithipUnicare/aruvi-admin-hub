@@ -20,7 +20,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     { path: '/products', icon: Package, label: 'Products' },
     { path: '/categories', icon: FolderTree, label: 'Categories' },
     { path: '/waiters', icon: Users, label: 'Waiters' },
-    { path: '/analytics', icon: BarChart3, label: 'Analytics' },
+    // { path: '/analytics', icon: BarChart3, label: 'Analytics' },
     { path: '/history', icon: History, label: 'History' },
     { path: '/settings', icon: Building2, label: 'Settings' },
   ];
