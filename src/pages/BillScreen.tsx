@@ -86,6 +86,7 @@ export default function BillScreen() {
       <!DOCTYPE html>
       <html>
       <head>
+        <meta charset="UTF-8">
         <style>
           @media print {
             @page { 
@@ -94,99 +95,210 @@ export default function BillScreen() {
             }
             body { 
               margin: 0; 
-              padding: 10px;
+              padding: 5px 8px;
               font-family: 'Courier New', monospace;
-              font-size: 12px;
+              font-size: 11px;
               width: 80mm;
             }
           }
           body {
             font-family: 'Courier New', monospace;
-            font-size: 12px;
+            font-size: 11px;
             width: 300px;
             margin: 0 auto;
+            padding: 5px 8px;
+            line-height: 1.3;
+          }
+          .stars {
+            text-align: center;
+            font-size: 10px;
+            letter-spacing: 0px;
+            margin: 3px 0;
           }
           .header {
             text-align: center;
-            border-bottom: 2px dashed #000;
-            padding-bottom: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
           }
           .header h2 {
             margin: 5px 0;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
+            letter-spacing: 1px;
           }
-          .item-row {
+          .header p {
+            margin: 2px 0;
+            font-size: 10px;
+            line-height: 1.4;
+          }
+          .tamil-text {
+            font-size: 11px;
+          }
+          .divider {
+            text-align: center;
+            margin: 5px 0;
+            font-size: 10px;
+          }
+          .bill-type {
+            text-align: center;
+            font-weight: bold;
+            font-size: 13px;
+            margin: 8px 0;
+          }
+          .bill-info {
             display: flex;
             justify-content: space-between;
+            font-size: 10px;
             margin: 5px 0;
           }
-          .item-name {
-            flex: 1;
+          .table-header {
+            display: grid;
+            grid-template-columns: 40px 1fr 35px 50px 65px;
+            font-weight: bold;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 3px;
+            margin: 8px 0 5px 0;
+            font-size: 10px;
           }
-          .item-qty {
-            width: 30px;
+          .col-center {
             text-align: center;
           }
-          .item-price {
-            width: 60px;
+          .col-right {
+            text-align: right;
+          }
+          .item-row {
+            display: grid;
+            grid-template-columns: 40px 1fr 35px 50px 65px;
+            margin: 4px 0;
+            font-size: 10px;
+            line-height: 1.5;
+          }
+          .item-row .sno {
+            text-align: left;
+          }
+          .item-row .name {
+            text-align: left;
+            padding-right: 5px;
+          }
+          .item-row .qty {
+            text-align: center;
+          }
+          .item-row .rate {
+            text-align: right;
+            padding-right: 5px;
+          }
+          .item-row .amount {
             text-align: right;
           }
           .total-section {
-            border-top: 2px dashed #000;
-            margin-top: 10px;
-            padding-top: 10px;
+            border-top: 1px dashed #000;
+            margin-top: 8px;
+            padding-top: 5px;
           }
           .total-row {
             display: flex;
             justify-content: space-between;
-            font-size: 14px;
+            font-size: 12px;
+            margin: 3px 0;
+          }
+          .grand-total {
             font-weight: bold;
+            font-size: 15px;
             margin: 5px 0;
           }
           .footer {
             text-align: center;
-            margin-top: 15px;
-            border-top: 2px dashed #000;
-            padding-top: 10px;
+            margin-top: 10px;
+            border-top: 1px dashed #000;
+            padding-top: 8px;
+          }
+          .footer p {
+            margin: 3px 0;
+            font-size: 12px;
+            font-style: italic;
           }
         </style>
       </head>
       <body>
+        <div class="stars">**********************************************</div>
+        
         <div class="header">
           <h2>ARUVI RESTAURANT</h2>
-          <p>Kudil ${kudilNumber}</p>
-          <p>${new Date().toLocaleString()}</p>
+          <p class="tamil-text">மணப்பாறை சமையல்</p>
+          <p>Elampillai To Chinnampatti Main Road</p>
+          <p>Near Nayara Petrol Bunk, Elampillai-637502</p>
+          <p><strong>Phone : 7200800840</strong></p>
         </div>
+        
+        <div class="divider">----------------------------------------------</div>
+        
+        <div class="bill-type">Cash BILL</div>
+        
+        <div class="divider">----------------------------------------------</div>
+        
+        <div class="bill-info">
+          <span>Bill No : ${
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
+              .sort(() => Math.random() - 0.5)
+              .slice(0, 4)
+              .join("") || "46"
+          }</span>
+          <span>Date :${new Date()
+            .toLocaleDateString("en-GB")
+            .replace(/\//g, "-")}  Time ${new Date().toLocaleTimeString(
+      "en-GB"
+    )}</span>
+        </div>
+        
+        <div class="divider">----------------------------------------------</div>
+        
+        <div class="table-header">
+          <div>S.No</div>
+          <div>Particulars</div>
+          <div class="col-center">Qty</div>
+          <div class="col-right">Rate</div>
+          <div class="col-right">Amount</div>
+        </div>
+        
+        
         
         <div class="items">
           ${currentOrder
             .map(
-              (item) => `
+              (item, index) => `
             <div class="item-row">
-              <span class="item-name">${item.productName}</span>
-              <span class="item-qty">x${item.quantity}</span>
-              <span class="item-price">₹${(item.price * item.quantity).toFixed(
+              <div class="sno">${index + 1}</div>
+              <div class="name">${item.productName}</div>
+              <div class="qty">${item.quantity}</div>
+              <div class="rate">${item.price.toFixed(2)}</div>
+              <div class="amount">${(item.price * item.quantity).toFixed(
                 2
-              )}</span>
+              )}</div>
             </div>
           `
             )
             .join("")}
         </div>
 
+        
+
         <div class="total-section">
           <div class="total-row">
-            <span>TOTAL:</span>
-            <span>₹${total.toFixed(2)}</span>
+            <span>Total</span>
+            <span>${total.toFixed(2)}</span>
+          </div>
+          <div class="total-row grand-total">
+            <span>Grand Total :</span>
+            <span>${total.toFixed(2)}</span>
           </div>
         </div>
 
+        
+
         <div class="footer">
-          <p>Thank You!</p>
-          <p>Visit Again</p>
+          <p>Thank U Visit Again</p>
         </div>
+        
+        <div class="stars">**********************************************</div>
       </body>
       </html>
     `;
