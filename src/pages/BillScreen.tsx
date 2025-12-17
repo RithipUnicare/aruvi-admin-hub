@@ -337,10 +337,10 @@ export default function BillScreen() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-foreground">
-              Kudil {kudilNumber} - Bill
+              Table {kudilNumber} - Bill
             </h1>
             <p className="text-muted-foreground mt-1">
-              Manage billing for this Kudil
+              Manage billing for this table
             </p>
           </div>
         </div>
@@ -350,7 +350,7 @@ export default function BillScreen() {
           <div className="border-b-2 border-dashed border-border pb-4 mb-4">
             <h2 className="text-xl font-bold text-center">ARUVI RESTAURANT</h2>
             <p className="text-center text-sm text-muted-foreground">
-              Kudil {kudilNumber}
+              Table {kudilNumber}
             </p>
           </div>
 

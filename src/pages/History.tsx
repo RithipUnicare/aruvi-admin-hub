@@ -86,7 +86,7 @@ export default function History() {
                     <div className="flex items-center gap-4">
                       <div>
                         <h3 className="font-semibold text-lg">
-                          Kudil {kudilNumber}
+                          Table {kudilNumber}
                         </h3>
                         <p className="text-sm text-muted-foreground">
                           {formatDate(entry.timestamp)} at{" "}

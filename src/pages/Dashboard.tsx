@@ -128,7 +128,7 @@ export default function Dashboard() {
     const kudilId = `${kudilNumber}`;
     const kudilOrders = orders[kudilId] || [];
     return {
-      name: `Kudil ${kudilNumber}`,
+      name: `Table ${kudilNumber}`,
       number: kudilNumber,
       id: kudilId,
       orders: kudilOrders,
@@ -142,7 +142,7 @@ export default function Dashboard() {
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">
             Dashboard
           </h1>
-          <p className="text-muted-foreground mt-1">Monitor all Kudil orders</p>
+          <p className="text-muted-foreground mt-1">Monitor all table orders</p>
         </div>
         <Button onClick={handleRefresh} variant="outline" size="icon">
           <RefreshCw className="h-4 w-4" />

@@ -1,18 +1,24 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LogIn } from 'lucide-react';
-import { toast } from 'sonner';
-import { useApp } from '@/contexts/AppContext';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { LogIn } from "lucide-react";
+import { toast } from "sonner";
+import { useApp } from "@/contexts/AppContext";
 
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useApp();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -20,12 +26,12 @@ export default function Login() {
     setLoading(true);
 
     // Hardcoded credentials
-    if (username === 'AruviAdmin' && password === '9994989459') {
+    if (username === "DeepikaAdmin" && password === "deepika@123") {
       login();
-      toast.success('Login successful');
-      navigate('/');
+      toast.success("Login successful");
+      navigate("/");
     } else {
-      toast.error('Invalid credentials');
+      toast.error("Invalid credentials");
     }
 
     setLoading(false);
@@ -38,7 +44,9 @@ export default function Login() {
           <div className="flex items-center justify-center mb-4">
             <LogIn className="h-12 w-12 text-primary" />
           </div>
-          <CardTitle className="text-2xl text-center">Aruvi Admin Login</CardTitle>
+          <CardTitle className="text-2xl text-center">
+            Deepika Groups Login
+          </CardTitle>
           <CardDescription className="text-center">
             Enter your credentials to access the admin panel
           </CardDescription>
@@ -69,7 +77,7 @@ export default function Login() {
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               <LogIn className="mr-2 h-4 w-4" />
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? "Logging in..." : "Login"}
             </Button>
           </form>
         </CardContent>
