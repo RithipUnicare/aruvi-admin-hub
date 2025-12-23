@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, {
   createContext,
   useContext,
@@ -14,19 +15,9 @@ import {
   waitersApi,
 } from "@/services/api";
 import { toast } from "@/hooks/use-toast";
+import { useApiData, Product, Category } from '@/hooks/useApiData';
 
-export interface Product {
-  id: string;
-  name: string;
-  price: number;
-  categoryId: string;
-}
-
-export interface Category {
-  id: string;
-  name: string;
-}
-
+export type { Product, Category };
 export interface OrderItem {
   productId: string;
   productName: string;
@@ -80,6 +71,7 @@ interface AppContextType {
   history: HistoryEntry[];
   waiters: Waiter[];
   kudilCompletions: Record<string, boolean>;
+  tableCompletions: Record<string, boolean>;
   loading: boolean;
   isAuthenticated: boolean;
   login: () => void;
@@ -93,12 +85,12 @@ interface AppContextType {
   ) => Promise<void>;
   clearKudilOrder: (kudilId: string) => Promise<void>;
   printBill: (kudilId: string, waiterId?: string) => Promise<void>;
-  addProduct: (product: Omit<Product, "id">) => Promise<void>;
-  updateProduct: (id: string, product: Omit<Product, "id">) => Promise<void>;
-  deleteProduct: (id: string) => Promise<void>;
-  addCategory: (category: Omit<Category, "id">) => Promise<void>;
-  updateCategory: (id: string, category: Omit<Category, "id">) => Promise<void>;
-  deleteCategory: (id: string) => Promise<void>;
+  // addProduct: (product: Omit<Product, "id">) => Promise<void>;
+  // updateProduct: (id: string, product: Omit<Product, "id">) => Promise<void>;
+  // deleteProduct: (id: string) => Promise<void>;
+  // addCategory: (category: Omit<Category, "id">) => Promise<void>;
+  // updateCategory: (id: string, category: Omit<Category, "id">) => Promise<void>;
+  // deleteCategory: (id: string) => Promise<void>;
   addWaiter: (
     waiter: Omit<Waiter, "id" | "ordersCompleted" | "issues">
   ) => Promise<void>;
@@ -122,11 +114,11 @@ export const useApp = () => {
 };
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
+  const { categories, products, loading: apiLoading, refreshData: refreshApiData } = useApiData();
   const [orders, setOrders] = useState<Record<string, OrderItem[]>>({});
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [waiters, setWaiters] = useState<Waiter[]>([]);
+   const [tableCompletions, setTableCompletions] = useState<Record<string, boolean>>({});
   const [kudilCompletions, setKudilCompletions] = useState<
     Record<string, boolean>
   >({});
@@ -156,15 +148,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         historyData,
         waitersData,
       ] = await Promise.all([
-        productsApi.getAll().catch(() => []),
-        categoriesApi.getAll().catch(() => []),
+        products,
+        categories,
         ordersApi.getAll().catch(() => []),
         historyApi.getAll().catch(() => []),
         waitersApi.getAll().catch(() => []),
       ]);
+      const storedCompletions = localStorage.getItem('tableCompletions');
       console.log("Loaded data:", ordersData);
-      setProducts(productsData);
-      setCategories(categoriesData);
       setHistory(historyData);
       setWaiters(waitersData);
 
@@ -176,14 +167,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           typeof order.completed === "boolean"
             ? order.completed
             : order.status === "completed" ||
-              order.status === "complete" ||
-              order.status === true;
+            order.status === "complete" ||
+            order.status === true;
         setKudilCompletions((prev) => ({
           ...prev,
           [order.kudilId]: !!completed,
         }));
       });
       setOrders(ordersMap);
+      if (storedCompletions) setTableCompletions(JSON.parse(storedCompletions));
     } catch (error) {
       toast({
         title: "Error loading data",
@@ -358,119 +350,125 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const addProduct = async (product: Omit<Product, "id">) => {
-    try {
-      const newProduct = await productsApi.create(product);
-      setProducts((prev) => [...prev, newProduct]);
+  // const addProduct = async (product: Omit<Product, "id">) => {
+  //   try {
+  //     const newProduct = await productsApi.create(product);
+  //     setProducts((prev) => [...prev, newProduct]);
 
-      toast({
-        title: "Product added",
-        description: "Product successfully created",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to add product",
-        variant: "destructive",
-      });
+  //     toast({
+  //       title: "Product added",
+  //       description: "Product successfully created",
+  //     });
+  //   } catch (error) {
+  //     toast({
+  //       title: "Error",
+  //       description:
+  //         error instanceof Error ? error.message : "Failed to add product",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
+
+  // const updateProduct = async (id: string, product: Omit<Product, "id">) => {
+  //   try {
+  //     const updated = await productsApi.update(id, product);
+  //     setProducts((prev) => prev.map((p) => (p.id === id ? updated : p)));
+
+  //     toast({
+  //       title: "Product updated",
+  //       description: "Product successfully updated",
+  //     });
+  //   } catch (error) {
+  //     toast({
+  //       title: "Error",
+  //       description:
+  //         error instanceof Error ? error.message : "Failed to update product",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
+
+  // const deleteProduct = async (id: string) => {
+  //   try {
+  //     await productsApi.delete(id);
+  //     setProducts((prev) => prev.filter((p) => p.id !== id));
+
+  //     toast({
+  //       title: "Product deleted",
+  //       description: "Product successfully deleted",
+  //     });
+  //   } catch (error) {
+  //     toast({
+  //       title: "Error",
+  //       description:
+  //         error instanceof Error ? error.message : "Failed to delete product",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
+
+  // const addCategory = async (category: Omit<Category, "id">) => {
+  //   try {
+  //     const newCategory = await categoriesApi.create(category);
+  //     setCategories((prev) => [...prev, newCategory]);
+
+  //     toast({
+  //       title: "Category added",
+  //       description: "Category successfully created",
+  //     });
+  //   } catch (error) {
+  //     toast({
+  //       title: "Error",
+  //       description:
+  //         error instanceof Error ? error.message : "Failed to add category",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
+
+  // const updateCategory = async (id: string, category: Omit<Category, "id">) => {
+  //   try {
+  //     const updated = await categoriesApi.update(id, category);
+  //     setCategories((prev) => prev.map((c) => (c.id === id ? updated : c)));
+
+  //     toast({
+  //       title: "Category updated",
+  //       description: "Category successfully updated",
+  //     });
+  //   } catch (error) {
+  //     toast({
+  //       title: "Error",
+  //       description:
+  //         error instanceof Error ? error.message : "Failed to update category",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
+
+  // const deleteCategory = async (id: string) => {
+  //   try {
+  //     await categoriesApi.delete(id);
+  //     setCategories((prev) => prev.filter((c) => c.id !== id));
+
+  //     toast({
+  //       title: "Category deleted",
+  //       description: "Category successfully deleted",
+  //     });
+  //   } catch (error) {
+  //     toast({
+  //       title: "Error",
+  //       description:
+  //         error instanceof Error ? error.message : "Failed to delete category",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
+
+   useEffect(() => {
+    if (!loading) {
+      localStorage.setItem('tableCompletions', JSON.stringify(tableCompletions));
     }
-  };
-
-  const updateProduct = async (id: string, product: Omit<Product, "id">) => {
-    try {
-      const updated = await productsApi.update(id, product);
-      setProducts((prev) => prev.map((p) => (p.id === id ? updated : p)));
-
-      toast({
-        title: "Product updated",
-        description: "Product successfully updated",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to update product",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const deleteProduct = async (id: string) => {
-    try {
-      await productsApi.delete(id);
-      setProducts((prev) => prev.filter((p) => p.id !== id));
-
-      toast({
-        title: "Product deleted",
-        description: "Product successfully deleted",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to delete product",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const addCategory = async (category: Omit<Category, "id">) => {
-    try {
-      const newCategory = await categoriesApi.create(category);
-      setCategories((prev) => [...prev, newCategory]);
-
-      toast({
-        title: "Category added",
-        description: "Category successfully created",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to add category",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const updateCategory = async (id: string, category: Omit<Category, "id">) => {
-    try {
-      const updated = await categoriesApi.update(id, category);
-      setCategories((prev) => prev.map((c) => (c.id === id ? updated : c)));
-
-      toast({
-        title: "Category updated",
-        description: "Category successfully updated",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to update category",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const deleteCategory = async (id: string) => {
-    try {
-      await categoriesApi.delete(id);
-      setCategories((prev) => prev.filter((c) => c.id !== id));
-
-      toast({
-        title: "Category deleted",
-        description: "Category successfully deleted",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to delete category",
-        variant: "destructive",
-      });
-    }
-  };
+  }, [tableCompletions, loading]);
 
   const getKudilOrderCount = (kudilId: string) => {
     const kudilOrders = orders[kudilId] || [];
@@ -610,12 +608,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         updateOrderItemQuantity,
         clearKudilOrder,
         printBill,
-        addProduct,
-        updateProduct,
-        deleteProduct,
-        addCategory,
-        updateCategory,
-        deleteCategory,
         addWaiter,
         updateWaiter,
         deleteWaiter,

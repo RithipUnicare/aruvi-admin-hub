@@ -1,6 +1,7 @@
-const BASE_URL = window.location.origin + "/v1";
-// const BASE_URL =
-//   "http://aruvi-salem-env.eba-ymet39eb.eu-north-1.elasticbeanstalk.com/v1";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+//const BASE_URL = window.location.origin + "/v1";
+const BASE_URL =
+  "http://aruvi-salem-env.eba-ymet39eb.eu-north-1.elasticbeanstalk.com/v1";
 
 interface ApiResponse<T> {
   success: boolean;
