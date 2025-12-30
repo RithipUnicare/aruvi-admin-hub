@@ -1,576 +1,162 @@
-// import { useEffect, useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import {
-//   RefreshCw,
-//   ShoppingCart,
-//   Edit,
-//   Plus,
-//   Minus,
-//   Trash2,
-// } from "lucide-react";
-// import { useApp } from "@/contexts/AppContext";
-// import { Card } from "@/components/ui/card";
-// import { Button } from "@/components/ui/button";
-// import { ScrollArea } from "@/components/ui/scroll-area";
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogHeader,
-//   DialogTitle,
-//   DialogTrigger,
-// } from "@/components/ui/dialog";
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from "@/components/ui/select";
-// import { Input } from "@/components/ui/input";
-// import { Label } from "@/components/ui/label";
-// import { toast } from "sonner";
-// import { cn } from "@/lib/utils";
-// import { AppProvider } from "@/contexts/AppContext";
-// import { hotelsApi } from "@/services/api";
-// export default function Dashboard() {
-//   const navigate = useNavigate();
-//   const {
-//     orders,
-//     products,
-//     categories,
-//     kudilCompletions,
-//     getKudilOrderCount,
-//     getKudilTotal,
-//     addOrderItem,
-//     removeOrderItem,
-//     updateOrderItemQuantity,
-//     toggleKudilCompletion,
-//     refreshData,
-//   } = useApp();
-//   const [refreshKey, setRefreshKey] = useState(0);
-//   const [editingKudil, setEditingKudil] = useState<string | null>(null);
-//   const [selectedCategory, setSelectedCategory] = useState<string>("");
-//   const [selectedProduct, setSelectedProduct] = useState<string>("");
-//   const [quantity, setQuantity] = useState(1);
-//   const [notables, setNotables] = useState<number>(8);
-
-//   useEffect(() => {
-//     const interval = setInterval(() => {
-//       setRefreshKey((prev) => prev + 1);
-//     }, 60000);
-//     getHotalDetails();
-//     return () => clearInterval(interval);
-//   }, []);
-
-//   const handleRefresh = () => {
-//     setRefreshKey((prev) => prev + 1);
-//     refreshData();
-//     console.log(orders);
-//     toast.success("Dashboard refreshed");
-//   };
-//   useEffect(() => {
-//     const interval = setInterval(() => {
-//       refreshData();
-//       setRefreshKey((prev) => prev + 1);
-//     }, 3 * 60 * 1000);
-
-//     return () => clearInterval(interval);
-//   }, [refreshData]);
-
-//   const getHotalDetails = async () => {
-//     try {
-//       const hotels = await hotelsApi.getAll();
-//       setNotables(hotels[0].noOfTables);
-//       console.log("Hotel details fetched:", hotels);
-//       //setNotables(data.notables);
-//     } catch (error) {
-//       console.error("Error fetching hotel details:", error);
-//     }
-//   };
-
-//   const handleGoToBill = (kudilId: string) => {
-//     const kudilNumber = kudilId.replace("kudil", "");
-//     navigate(`/bill/${kudilNumber}`);
-//   };
-
-//   const handleAddItem = () => {
-//     if (!editingKudil || !selectedProduct) {
-//       toast.error("Please select a product");
-//       return;
-//     }
-//     const product = products.find((p) => p.id === selectedProduct);
-//     if (product) {
-//       addOrderItem(editingKudil, {
-//         productId: product.id,
-//         productName: product.name,
-//         quantity,
-//         price: product.price,
-//       });
-//       toast.success("Item added");
-//       setSelectedProduct("");
-//       setQuantity(1);
-//     }
-//   };
-
-//   const handleCompleteToggle = (kudilId: string) => {
-//     toggleKudilCompletion(kudilId);
-//     toast.success(
-//       kudilCompletions[kudilId] ? "Marked as incomplete" : "Marked as complete"
-//     );
-//   };
-
-//   const filteredProducts = selectedCategory
-//     ? products.filter((p) => p.categoryId === selectedCategory)
-//     : products;
-
-//   const kudils = Array.from({ length: notables }, (data, i) => {
-//     const kudilNumber = i + 1;
-//     const kudilId = `${kudilNumber}`;
-//     const kudilOrders = orders[kudilId] || [];
-//     return {
-//       name: `Table ${kudilNumber}`,
-//       number: kudilNumber,
-//       id: kudilId,
-//       orders: kudilOrders,
-//     };
-//   });
-
-//   return (
-//     <div className="p-4 md:p-8" key={refreshKey}>
-//       <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-//         <div>
-//           <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-//             Dashboard
-//           </h1>
-//           <p className="text-muted-foreground mt-1">Monitor all table orders</p>
-//         </div>
-//         <Button onClick={handleRefresh} variant="outline" size="icon">
-//           <RefreshCw className="h-4 w-4" />
-//         </Button>
-//       </div>
-
-//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-//         {kudils.map((kudil) => {
-//           const itemCount = getKudilOrderCount(kudil.id);
-//           const total = getKudilTotal(kudil.id);
-//           const isCompleted = kudilCompletions[kudil.id];
-//           console.log("Rendering kudil:", kudil.id, "Completed:", isCompleted);
-
-//           return (
-//             <Card
-//               key={kudil.id}
-//               className={cn(
-//                 "overflow-hidden hover:shadow-lg transition-all",
-//                 isCompleted && "border-2 border-primary bg-primary/5"
-//               )}
-//             >
-//               <div className="p-4 md:p-6">
-//                 <div className="flex items-center justify-between mb-4">
-//                   <h2 className="text-xl md:text-2xl font-bold text-foreground">
-//                     {kudil.name}
-//                   </h2>
-//                   <div className="flex gap-2">
-//                     <Dialog>
-//                       <DialogTrigger asChild>
-//                         <Button
-//                           size="icon"
-//                           variant="ghost"
-//                           onClick={() => {
-//                             setEditingKudil(kudil.id);
-//                             setSelectedCategory("");
-//                             setSelectedProduct("");
-//                             setQuantity(1);
-//                           }}
-//                         >
-//                           <Edit className="h-4 w-4" />
-//                         </Button>
-//                       </DialogTrigger>
-//                       <DialogContent className="max-w-md">
-//                         <DialogHeader>
-//                           <DialogTitle>
-//                             Manage Orders - {kudil.name}
-//                           </DialogTitle>
-//                         </DialogHeader>
-//                         <ScrollArea className="max-h-[60vh]">
-//                           <div className="space-y-4 py-4 px-1">
-//                             {/* Current Items */}
-//                             <div>
-//                               <Label className="text-sm font-semibold mb-2 block">
-//                                 Current Items
-//                               </Label>
-//                               {kudil.orders.length === 0 ? (
-//                                 <p className="text-sm text-muted-foreground">
-//                                   No items
-//                                 </p>
-//                               ) : (
-//                                 <div className="space-y-2">
-//                                   {kudil.orders.map((item, idx) => (
-//                                     <div
-//                                       key={idx}
-//                                       className="flex items-center gap-2 p-2 border rounded"
-//                                     >
-//                                       <span className="flex-1 text-sm">
-//                                         {item.productName}
-//                                       </span>
-//                                       <div className="flex items-center gap-1">
-//                                         <Button
-//                                           size="icon"
-//                                           variant="ghost"
-//                                           className="h-6 w-6"
-//                                           onClick={() =>
-//                                             updateOrderItemQuantity(
-//                                               kudil.id,
-//                                               item.productId,
-//                                               item.quantity - 1
-//                                             )
-//                                           }
-//                                         >
-//                                           <Minus className="h-3 w-3" />
-//                                         </Button>
-//                                         <span className="text-sm font-medium w-8 text-center">
-//                                           {item.quantity}
-//                                         </span>
-//                                         <Button
-//                                           size="icon"
-//                                           variant="ghost"
-//                                           className="h-6 w-6"
-//                                           onClick={() =>
-//                                             updateOrderItemQuantity(
-//                                               kudil.id,
-//                                               item.productId,
-//                                               item.quantity + 1
-//                                             )
-//                                           }
-//                                         >
-//                                           <Plus className="h-3 w-3" />
-//                                         </Button>
-//                                         <Button
-//                                           size="icon"
-//                                           variant="ghost"
-//                                           className="h-6 w-6 ml-2"
-//                                           onClick={() => {
-//                                             removeOrderItem(
-//                                               kudil.id,
-//                                               item.productId
-//                                             );
-//                                             toast.success("Item removed");
-//                                           }}
-//                                         >
-//                                           <Trash2 className="h-3 w-3 text-destructive" />
-//                                         </Button>
-//                                       </div>
-//                                     </div>
-//                                   ))}
-//                                 </div>
-//                               )}
-//                             </div>
-
-//                             {/* Add New Item */}
-//                             <div className="border-t pt-4">
-//                               <Label className="text-sm font-semibold mb-2 block">
-//                                 Add New Item
-//                               </Label>
-//                               <div className="space-y-3">
-//                                 <div>
-//                                   <Label className="text-xs">Category</Label>
-//                                   <Select
-//                                     value={selectedCategory}
-//                                     onValueChange={setSelectedCategory}
-//                                   >
-//                                     <SelectTrigger>
-//                                       <SelectValue placeholder="Select category" />
-//                                     </SelectTrigger>
-//                                     <SelectContent>
-//                                       {categories.map((cat) => (
-//                                         <SelectItem key={cat.id} value={cat.id}>
-//                                           {cat.name}
-//                                         </SelectItem>
-//                                       ))}
-//                                     </SelectContent>
-//                                   </Select>
-//                                 </div>
-//                                 <div>
-//                                   <Label className="text-xs">Product</Label>
-//                                   <Select
-//                                     value={selectedProduct}
-//                                     onValueChange={setSelectedProduct}
-//                                   >
-//                                     <SelectTrigger>
-//                                       <SelectValue placeholder="Select product" />
-//                                     </SelectTrigger>
-//                                     <SelectContent>
-//                                       {filteredProducts.map((prod) => (
-//                                         <SelectItem
-//                                           key={prod.id}
-//                                           value={prod.id}
-//                                         >
-//                                           {prod.name} - ₹{prod.price}
-//                                         </SelectItem>
-//                                       ))}
-//                                     </SelectContent>
-//                                   </Select>
-//                                 </div>
-//                                 <div>
-//                                   <Label className="text-xs">Quantity</Label>
-//                                   <Input
-//                                     type="number"
-//                                     min="1"
-//                                     value={quantity}
-//                                     onChange={(e) =>
-//                                       setQuantity(parseInt(e.target.value) || 1)
-//                                     }
-//                                   />
-//                                 </div>
-//                                 <Button
-//                                   onClick={handleAddItem}
-//                                   className="w-full"
-//                                 >
-//                                   <Plus className="mr-2 h-4 w-4" />
-//                                   Add Item
-//                                 </Button>
-//                               </div>
-//                             </div>
-//                           </div>
-//                         </ScrollArea>
-//                       </DialogContent>
-//                     </Dialog>
-//                     <ShoppingCart className="h-5 w-5 md:h-6 md:w-6 text-primary" />
-//                   </div>
-//                 </div>
-
-//                 <ScrollArea className="h-32 mb-4">
-//                   <div className="pr-4">
-//                     <p className="text-sm text-muted-foreground mb-2">
-//                       Current Orders:
-//                     </p>
-//                     {kudil.orders.length === 0 ? (
-//                       <p className="text-muted-foreground text-sm">
-//                         No orders yet
-//                       </p>
-//                     ) : (
-//                       <div className="space-y-1">
-//                         {kudil.orders.map((item, idx) => (
-//                           <div
-//                             key={idx}
-//                             className="flex justify-between text-sm"
-//                           >
-//                             <span>{item.productName}</span>
-//                             <span className="font-medium">
-//                               x{item.quantity}
-//                             </span>
-//                           </div>
-//                         ))}
-//                       </div>
-//                     )}
-//                   </div>
-//                 </ScrollArea>
-
-//                 <div className="mb-4 p-3 bg-primary/10 rounded-lg">
-//                   <div className="flex justify-between items-center">
-//                     <span className="text-sm font-medium">Total:</span>
-//                     <span className="text-xl md:text-2xl font-bold text-primary">
-//                       ₹{total}
-//                     </span>
-//                   </div>
-//                   <div className="text-xs text-muted-foreground mt-1">
-//                     {itemCount} item(s)
-//                   </div>
-//                 </div>
-
-//                 <div className="flex flex-col gap-2">
-//                   <Button
-//                     variant={isCompleted ? "default" : "outline"}
-//                     className="w-full"
-//                     onClick={() => handleCompleteToggle(kudil.id)}
-//                   >
-//                     {isCompleted ? "✓ Completed" : "Waiter Complete"}
-//                   </Button>
-//                   <Button
-//                     className="w-full"
-//                     onClick={() => handleGoToBill(kudil.id)}
-//                   >
-//                     Go to Bill
-//                   </Button>
-//                 </div>
-//               </div>
-//             </Card>
-//           );
-//         })}
-//       </div>
-//     </div>
-//   );
-// }
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   RefreshCw,
   ShoppingCart,
-  Edit,
-  Plus,
-  Minus,
-  Trash2,
   User,
 } from "lucide-react";
 import { useApp } from "@/contexts/AppContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { hotelsApi } from "@/services/api";
 
+interface OrderItem {
+  id: number;
+  p_id: number;
+  category_id: number;
+  product_name: string;
+  category_name: string;
+  qty: number;
+  price: string;
+  amount: string;
+}
+
+interface TableOrder {
+  table_id: number;
+  table_name: string;
+  waiter_id: number;
+  waiter_name: string;
+  item_count: number;
+  subtotal: string;
+  items: OrderItem[];
+}
+
+interface OrdersResponse {
+  Success: number;
+  Messages: string;
+  total_tables: number;
+  total_items: number;
+  total_amount: string;
+  tables: TableOrder[];
+}
+
 interface TableConfig {
   id: string;
   name: string;
-}
-
-interface Hotel {
-  id: string;
-  shopName: string;
-  shopAddress: string;
-  shopDescription: string;
-  noOfTables: number;
-  tables: TableConfig[];
+  c_no: string;
+  Shop: string;
 }
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const {
-    orders,
-    products,
-    categories,
-    kudilCompletions,
-    getKudilOrderCount,
-    getKudilTotal,
-    addOrderItem,
-    removeOrderItem,
-    updateOrderItemQuantity,
-    toggleKudilCompletion,
-    refreshData,
-  } = useApp();
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [editingKudil, setEditingKudil] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [selectedProduct, setSelectedProduct] = useState<string>("");
-  const [quantity, setQuantity] = useState(1);
-  const [notables, setNotables] = useState<number>(8);
+  const { appParams } = useApp();
+
   const [hotelTables, setHotelTables] = useState<TableConfig[]>([]);
+  const [ordersData, setOrdersData] = useState<OrdersResponse | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRefreshKey((prev) => prev + 1);
-    }, 60000);
-    getHotalDetails();
-    return () => clearInterval(interval);
-  }, []);
+  // Use refs to prevent multiple loads and track state
+  const tablesLoadedRef = useRef(false);
+  const ordersLoadedRef = useRef(false);
+  const loadingRef = useRef(false);
+  const autoRefreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleRefresh = () => {
-    setRefreshKey((prev) => prev + 1);
-    refreshData();
-    console.log(orders);
-    toast.success("Dashboard refreshed");
-  };
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      refreshData();
-      setRefreshKey((prev) => prev + 1);
-    }, 3 * 60 * 1000);
-
-    return () => clearInterval(interval);
-  }, [refreshData]);
-
-  const getHotalDetails = async () => {
-    try {
-      const hotels = await hotelsApi.getAll();
-      setNotables(hotels[0].noOfTables);
-      
-      // Load custom table names if available
-      if (hotels[0].tables && hotels[0].tables.length > 0) {
-        setHotelTables(hotels[0].tables);
-      }
-      
-      console.log("Hotel details fetched:", hotels);
-    } catch (error) {
-      console.error("Error fetching hotel details:", error);
-    }
-  };
-
-  const handleGoToBill = (kudilId: string) => {
-    navigate(`/bill/${kudilId}`);
-  };
-
-  const handleAddItem = () => {
-    if (!editingKudil || !selectedProduct) {
-      toast.error("Please select a product");
+  const loadTablesFromAPI = useCallback(async () => {
+    if (loadingRef.current) {
+      console.log('Load already in progress, skipping...');
       return;
     }
-    const product = products.find((p) => p.id === selectedProduct);
-    if (product) {
-      addOrderItem(editingKudil, {
-        productId: product.id,
-        productName: product.name,
-        quantity,
-        price: product.price,
+
+    try {
+      loadingRef.current = true;
+      setLoading(true);
+
+      if (!appParams?.c_no) {
+        throw new Error("Shop ID (c_no) is not available");
+      }
+
+      // Fetch tables and orders in parallel
+      const [tablesResponse, ordersResponse] = await Promise.all([
+        hotelsApi.getTables(appParams.c_no),
+        fetch(`https://deepikagroups.in/admin/api/get_tableOrder.php?c_no=${appParams.c_no}&type=${appParams.type}`)
+          .then(res => res.json())
+      ]);
+
+      if (tablesResponse.Tables && tablesResponse.Tables.length > 0) {
+        setHotelTables(tablesResponse.Tables);
+        tablesLoadedRef.current = true;
+      } else {
+        setHotelTables([]);
+      }
+
+      setOrdersData(ordersResponse);
+      ordersLoadedRef.current = true;
+
+      console.log("Data loaded:", {
+        tables: tablesResponse.Tables?.length || 0,
+        orders: ordersResponse.total_tables || 0
       });
-      toast.success("Item added");
-      setSelectedProduct("");
-      setQuantity(1);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toast.error("Failed to load data from server");
+      setHotelTables([]);
+      setOrdersData(null);
+    } finally {
+      setLoading(false);
+      loadingRef.current = false;
     }
-  };
+  }, [appParams?.c_no, appParams?.type]);
 
-  const handleCompleteToggle = (kudilId: string) => {
-    toggleKudilCompletion(kudilId);
-    toast.success(
-      kudilCompletions[kudilId] ? "Marked as incomplete" : "Marked as complete"
-    );
-  };
+  // Load data only once on mount or when params change
+  useEffect(() => {
+    if (!tablesLoadedRef.current && appParams?.c_no) {
+      loadTablesFromAPI();
+    }
+  }, [appParams?.c_no, loadTablesFromAPI]);
 
-  const filteredProducts = selectedCategory
-    ? products.filter((p) => p.categoryId === selectedCategory)
-    : products;
+  // Set up auto-refresh for orders data (3 minutes)
+  useEffect(() => {
+    if (autoRefreshIntervalRef.current) {
+      clearInterval(autoRefreshIntervalRef.current);
+    }
 
-  // Helper function to get category for a product
-  const getProductCategory = (productId: string) => {
-    const product = products.find((p) => p.id === productId);
-    return product?.categoryId || "";
-  };
+    autoRefreshIntervalRef.current = setInterval(() => {
+      console.log('Auto-refreshing data...');
+      tablesLoadedRef.current = false;
+      ordersLoadedRef.current = false;
+      loadTablesFromAPI();
+    }, 3 * 60 * 1000);
 
-  // Helper function to group orders by category
-  const groupOrdersByCategory = (orderItems: typeof orders[string]) => {
-    const grouped: Record<string, typeof orderItems> = {};
+    return () => {
+      if (autoRefreshIntervalRef.current) {
+        clearInterval(autoRefreshIntervalRef.current);
+      }
+    };
+  }, [loadTablesFromAPI]);
 
-    // Sort items by category order (based on categories array order)
-    const sortedItems = [...orderItems].sort((a, b) => {
-      const catA = getProductCategory(a.productId);
-      const catB = getProductCategory(b.productId);
-      const indexA = categories.findIndex((c) => c.id === catA);
-      const indexB = categories.findIndex((c) => c.id === catB);
-      return indexA - indexB;
-    });
+  const handleRefresh = useCallback(() => {
+    tablesLoadedRef.current = false;
+    ordersLoadedRef.current = false;
+    loadTablesFromAPI();
+    toast.success("Dashboard refreshed");
+  }, [loadTablesFromAPI]);
 
-    sortedItems.forEach((item) => {
-      const categoryId = getProductCategory(item.productId);
-      const category = categories.find((c) => c.id === categoryId);
-      const categoryName = category?.name || "Other";
+  const handleGoToBill = useCallback((tableId: string) => {
+    const searchParams = new URLSearchParams();
+    searchParams.set('c_no', appParams.c_no);
+    searchParams.set('type', appParams.type);
+    navigate(`/bill/${tableId}?${searchParams.toString()}`);
+  }, [navigate, appParams]);
 
+  // Helper function to group orders by category - memoized
+  const groupOrdersByCategory = useCallback((items: OrderItem[]) => {
+    const grouped: Record<string, OrderItem[]> = {};
+
+    items.forEach((item) => {
+      const categoryName = item.category_name || "Other";
       if (!grouped[categoryName]) {
         grouped[categoryName] = [];
       }
@@ -578,254 +164,92 @@ export default function Dashboard() {
     });
 
     return grouped;
-  };
+  }, []);
 
-  // Get waiter name for a table (placeholder - will come from orders API)
-  const getKudilWaiter = (kudilId: string) => {
-    // TODO: Replace with actual waiter data from orders API
-    return "Waiter Name"; // Placeholder
-  };
+  // Get order data for a specific table
+  const getTableOrderData = useCallback((tableId: string) => {
+    if (!ordersData?.tables) return null;
+    return ordersData.tables.find(t => String(t.table_id) === String(tableId));
+  }, [ordersData]);
 
-  const kudils = hotelTables.length > 0
-    ? hotelTables.map((table, i) => {
-        const kudilId = table.id;
-        const kudilOrders = orders[kudilId] || [];
+  // Generate kudils data combining tables and orders
+  const kudils = useMemo(() => {
+    return hotelTables.map((table, i) => {
+      const orderData = getTableOrderData(table.id);
+      const items = orderData?.items || [];
 
-        return {
-          name: table.name,
-          number: i + 1,
-          id: kudilId,
-          orders: kudilOrders,
-          groupedOrders: groupOrdersByCategory(kudilOrders),
-          waiterName: getKudilWaiter(kudilId),
-        };
-      })
-    : Array.from({ length: notables }, (_, i) => {
-        const kudilNumber = i + 1;
-        const kudilId = `${kudilNumber}`;
-        const kudilOrders = orders[kudilId] || [];
+      return {
+        name: table.name,
+        number: i + 1,
+        id: table.id,
+        items: items,
+        groupedOrders: groupOrdersByCategory(items),
+        waiterName: orderData?.waiter_name || "No Waiter",
+        itemCount: orderData?.item_count || 0,
+        total: orderData?.subtotal ? parseFloat(orderData.subtotal) : 0,
+      };
+    });
+  }, [hotelTables, getTableOrderData, groupOrdersByCategory]);
 
-        return {
-          name: `Table ${kudilNumber}`,
-          number: kudilNumber,
-          id: kudilId,
-          orders: kudilOrders,
-          groupedOrders: groupOrdersByCategory(kudilOrders),
-          waiterName: getKudilWaiter(kudilId),
-        };
-      });
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto text-primary mb-4" />
+          <div className="text-lg">Loading tables...</div>
+          <div className="text-sm text-muted-foreground mt-2">
+            Shop: {appParams?.c_no || 'Unknown'}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4 md:p-8" key={refreshKey}>
+    <div className="p-4 md:p-8">
       <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">
             Dashboard
           </h1>
-          <p className="text-muted-foreground mt-1">Monitor all table orders</p>
+          <p className="text-muted-foreground mt-1">
+            Monitor all table orders • {hotelTables.length} table(s)
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Shop #{appParams?.c_no} • {appParams?.type}
+          </p>
         </div>
         <Button onClick={handleRefresh} variant="outline" size="icon">
           <RefreshCw className="h-4 w-4" />
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        {kudils.map((kudil) => {
-          const itemCount = getKudilOrderCount(kudil.id);
-          const total = getKudilTotal(kudil.id);
-          const isCompleted = kudilCompletions[kudil.id];
-
-          return (
+      {kudils.length === 0 ? (
+        <Card className="p-12">
+          <div className="text-center">
+            <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No tables configured</h3>
+            <p className="text-muted-foreground mb-4">
+              Please configure tables in Hotel Settings to get started.
+            </p>
+            <Button onClick={() => navigate('/settings')}>
+              Go to Settings
+            </Button>
+          </div>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          {kudils.map((kudil) => (
             <Card
               key={kudil.id}
-              className={cn(
-                "overflow-hidden hover:shadow-lg transition-all",
-                isCompleted && "border-2 border-primary bg-primary/5"
-              )}
+              className="overflow-hidden hover:shadow-lg transition-all"
             >
               <div className="p-4 md:p-6">
                 <div className="flex items-center justify-between mb-2">
                   <h2 className="text-xl md:text-2xl font-bold text-foreground">
                     {kudil.name}
                   </h2>
-                  <div className="flex gap-2">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => {
-                            setEditingKudil(kudil.id);
-                            setSelectedCategory("");
-                            setSelectedProduct("");
-                            setQuantity(1);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>
-                            Manage Orders - {kudil.name}
-                          </DialogTitle>
-                        </DialogHeader>
-                        <ScrollArea className="max-h-[60vh]">
-                          <div className="space-y-4 py-4 px-1">
-                            {/* Current Items - Grouped by Category */}
-                            <div>
-                              <Label className="text-sm font-semibold mb-2 block">
-                                Current Items
-                              </Label>
-                              {kudil.orders.length === 0 ? (
-                                <p className="text-sm text-muted-foreground">
-                                  No items
-                                </p>
-                              ) : (
-                                <div className="space-y-4">
-                                  {Object.entries(kudil.groupedOrders).map(
-                                    ([categoryName, items]) => (
-                                      <div key={categoryName}>
-                                        <div className="text-xs font-semibold text-primary uppercase tracking-wide mb-2 pb-1 border-b border-primary/20">
-                                          {categoryName}
-                                        </div>
-                                        <div className="space-y-2">
-                                          {items.map((item, idx) => (
-                                            <div
-                                              key={idx}
-                                              className="flex items-center gap-2 p-2 border rounded"
-                                            >
-                                              <span className="flex-1 text-sm">
-                                                {item.productName}
-                                              </span>
-                                              <div className="flex items-center gap-1">
-                                                <Button
-                                                  size="icon"
-                                                  variant="ghost"
-                                                  className="h-6 w-6"
-                                                  onClick={() =>
-                                                    updateOrderItemQuantity(
-                                                      kudil.id,
-                                                      item.productId,
-                                                      item.quantity - 1
-                                                    )
-                                                  }
-                                                >
-                                                  <Minus className="h-3 w-3" />
-                                                </Button>
-                                                <span className="text-sm font-medium w-8 text-center">
-                                                  {item.quantity}
-                                                </span>
-                                                <Button
-                                                  size="icon"
-                                                  variant="ghost"
-                                                  className="h-6 w-6"
-                                                  onClick={() =>
-                                                    updateOrderItemQuantity(
-                                                      kudil.id,
-                                                      item.productId,
-                                                      item.quantity + 1
-                                                    )
-                                                  }
-                                                >
-                                                  <Plus className="h-3 w-3" />
-                                                </Button>
-                                                <Button
-                                                  size="icon"
-                                                  variant="ghost"
-                                                  className="h-6 w-6 ml-2"
-                                                  onClick={() => {
-                                                    removeOrderItem(
-                                                      kudil.id,
-                                                      item.productId
-                                                    );
-                                                    toast.success("Item removed");
-                                                  }}
-                                                >
-                                                  <Trash2 className="h-3 w-3 text-destructive" />
-                                                </Button>
-                                              </div>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Add New Item */}
-                            <div className="border-t pt-4">
-                              <Label className="text-sm font-semibold mb-2 block">
-                                Add New Item
-                              </Label>
-                              <div className="space-y-3">
-                                <div>
-                                  <Label className="text-xs">Category</Label>
-                                  <Select
-                                    value={selectedCategory}
-                                    onValueChange={setSelectedCategory}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select category" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {categories.map((cat) => (
-                                        <SelectItem key={cat.id} value={cat.id}>
-                                          {cat.name}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div>
-                                  <Label className="text-xs">Product</Label>
-                                  <Select
-                                    value={selectedProduct}
-                                    onValueChange={setSelectedProduct}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select product" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {filteredProducts.map((prod) => (
-                                        <SelectItem
-                                          key={prod.id}
-                                          value={prod.id}
-                                        >
-                                          {prod.name} - ₹{prod.price}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div>
-                                  <Label className="text-xs">Quantity</Label>
-                                  <Input
-                                    type="number"
-                                    min="1"
-                                    value={quantity}
-                                    onChange={(e) =>
-                                      setQuantity(parseInt(e.target.value) || 1)
-                                    }
-                                  />
-                                </div>
-                                <Button
-                                  onClick={handleAddItem}
-                                  className="w-full"
-                                >
-                                  <Plus className="mr-2 h-4 w-4" />
-                                  Add Item
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </ScrollArea>
-                      </DialogContent>
-                    </Dialog>
-                    <ShoppingCart className="h-5 w-5 md:h-6 md:w-6 text-primary" />
-                  </div>
+                  <ShoppingCart className="h-5 w-5 md:h-6 md:w-6 text-primary" />
                 </div>
 
                 {/* Waiter Name */}
@@ -839,7 +263,7 @@ export default function Dashboard() {
                     <p className="text-sm text-muted-foreground mb-2">
                       Current Orders:
                     </p>
-                    {kudil.orders.length === 0 ? (
+                    {kudil.items.length === 0 ? (
                       <p className="text-muted-foreground text-sm">
                         No orders yet
                       </p>
@@ -856,9 +280,9 @@ export default function Dashboard() {
                                   key={idx}
                                   className="flex justify-between text-sm pl-2"
                                 >
-                                  <span>{item.productName}</span>
-                                  <span className="font-medium">
-                                    x{item.quantity}
+                                  <span className="break-words flex-1">{item.product_name}</span>
+                                  <span className="font-medium ml-2">
+                                    x{item.qty}
                                   </span>
                                 </div>
                               ))}
@@ -874,34 +298,25 @@ export default function Dashboard() {
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">Total:</span>
                     <span className="text-xl md:text-2xl font-bold text-primary">
-                      ₹{total}
+                      ₹{kudil.total.toFixed(2)}
                     </span>
                   </div>
                   <div className="text-xs text-muted-foreground mt-1">
-                    {itemCount} item(s)
+                    {kudil.itemCount} item(s)
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <Button
-                    variant={isCompleted ? "default" : "outline"}
-                    className="w-full"
-                    onClick={() => handleCompleteToggle(kudil.id)}
-                  >
-                    {isCompleted ? "✓ Completed" : "Waiter Complete"}
-                  </Button>
-                  <Button
-                    className="w-full"
-                    onClick={() => handleGoToBill(kudil.id)}
-                  >
-                    Go to Bill
-                  </Button>
-                </div>
+                <Button
+                  className="w-full"
+                  onClick={() => handleGoToBill(kudil.id)}
+                >
+                  Go to Bill
+                </Button>
               </div>
             </Card>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
