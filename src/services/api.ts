@@ -425,7 +425,8 @@
 // };
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const BASE_URL = "https://deepikagroups.in/admin/api";
-const OLD_BASE_URL = "http://aruvi-salem-env.eba-ymet39eb.eu-north-1.elasticbeanstalk.com/v1";
+const OLD_BASE_URL =
+  "http://aruvi-salem-env.eba-ymet39eb.eu-north-1.elasticbeanstalk.com/v1";
 
 interface ApiResponse<T> {
   success?: boolean;
@@ -442,8 +443,8 @@ interface ApiResponse<T> {
 export const getUrlParams = () => {
   const params = new URLSearchParams(window.location.search);
   return {
-    c_no: params.get('c_no') || '7',
-    type: params.get('type') || 'Godown'
+    c_no: params.get("c_no") || "7",
+    type: params.get("type") || "Godown",
   };
 };
 
@@ -482,21 +483,145 @@ async function apiCall<T>(url: string, options?: RequestInit): Promise<T> {
 // Hotels API (new Deepika Groups API)
 export const hotelsApi = {
   getShopDetails: (c_no: string, type: string) =>
-    apiCall<{ shop: any[] }>(`${BASE_URL}/get_shopDetails.php?c_no=${c_no}&type=${type}`),
+    apiCall<{ shop: any[] }>(
+      `${BASE_URL}/get_shopDetails.php?c_no=${c_no}&type=${type}`
+    ),
+
+  updateShopTableDetails: (data: {
+    no_table: number;
+    c_no: string;
+    user_id: string;
+  }) =>
+    apiCall<any>(`${BASE_URL}/update_tableDetails.php`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 
   getTables: (c_no: string) =>
     apiCall<{ Tables: any[] }>(`${BASE_URL}/get_tables.php?c_no=${c_no}`),
+
+  addTable: (data: {
+    edit_id?: string;
+    c_no: string;
+    name: string;
+    user_id: string;
+  }) =>
+    apiCall<any>(`${BASE_URL}/add_tables.php`, {
+      method: "POST",
+      body: JSON.stringify({
+        edit_id: data.edit_id || "",
+        c_no: data.c_no,
+        name: data.name,
+        user_id: data.user_id,
+      }),
+    }),
+};
+
+// Table Orders API (Deepika Groups API)
+export const tableOrdersApi = {
+  addOrder: (data: {
+    c_no: string;
+    waiter_id: string;
+    table_id: string;
+    user_id: string;
+    items: Array<{
+      p_id: string;
+      qty: number;
+      price: string;
+      amount: string;
+    }>;
+  }) =>
+    apiCall<any>(`${BASE_URL}/add_tableOrder.php`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  deleteOrder: (id: string) =>
+    apiCall<any>(`${BASE_URL}/delete_tableOrder.php?id=${id}`),
+
+  getTableOrders: (params: {
+    c_no: string;
+    table_id?: string;
+    waiter_id?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append("c_no", params.c_no);
+    if (params.table_id) queryParams.append("table_id", params.table_id);
+    if (params.waiter_id) queryParams.append("waiter_id", params.waiter_id);
+    return apiCall<any>(
+      `${BASE_URL}/get_tableOrder.php?${queryParams.toString()}`
+    );
+  },
+
+  updateOrderStatus: (data: {
+    c_no: string;
+    table_id: string;
+    waiter_id: string;
+    totalAmount: string;
+    user_id: string;
+    status: number; // 1-In table, 2-Payment Done
+  }) =>
+    apiCall<any>(`${BASE_URL}/update_tableOrderStatus.php`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  getAllOrders: (c_no: string) =>
+    apiCall<any>(`${BASE_URL}/get_allOrder.php?c_no=${c_no}`),
+
+  getProducts: (c_no: string, type: string) =>
+    apiCall<{ Product: any[] }>(
+      `${BASE_URL}/allProducts.php?company_no=${c_no}&type=${type}`
+    ),
+};
+
+// Waiters API (new Deepika Groups API)
+export const waitersApi = {
+  // Get waiters for a specific shop
+  getShopWaiters: (c_no: string, type: string) =>
+    apiCall<{ Waiters: any[] }>(
+      `${BASE_URL}/get_waiters.php?c_no=${c_no}&type=${type}`
+    ),
+
+  // Add a new waiter or edit existing one
+  addWaiter: (data: {
+    edit_id?: string;
+    c_no: string;
+    name: string;
+    mobile: string;
+    email: string;
+    password: string;
+    user_id: string;
+  }) =>
+    apiCall<any>(`${BASE_URL}/add_waiter.php`, {
+      method: "POST",
+      body: JSON.stringify({
+        edit_id: data.edit_id || "",
+        c_no: data.c_no,
+        name: data.name,
+        mobile: data.mobile,
+        email: data.email,
+        password: data.password,
+        user_id: data.user_id,
+      }),
+    }),
 };
 
 // Products API (old API)
 export const productsApi = {
-  getAll: () => apiCall<any>(`${OLD_BASE_URL}/products`).then(data => (data as any).data || data),
-  getById: (id: string) => apiCall<any>(`${OLD_BASE_URL}/products/${id}`).then(data => (data as any).data || data),
+  getAll: () =>
+    apiCall<any>(`${OLD_BASE_URL}/products`).then(
+      (data) => (data as any).data || data
+    ),
+  getById: (id: string) =>
+    apiCall<any>(`${OLD_BASE_URL}/products/${id}`).then(
+      (data) => (data as any).data || data
+    ),
   create: (product: { name: string; price: number; categoryId: string }) =>
     apiCall<any>(`${OLD_BASE_URL}/products`, {
       method: "POST",
       body: JSON.stringify(product),
-    }).then(data => (data as any).data || data),
+    }).then((data) => (data as any).data || data),
   update: (
     id: string,
     product: { name: string; price: number; categoryId: string }
@@ -504,32 +629,41 @@ export const productsApi = {
     apiCall<any>(`${OLD_BASE_URL}/products/${id}`, {
       method: "PUT",
       body: JSON.stringify(product),
-    }).then(data => (data as any).data || data),
+    }).then((data) => (data as any).data || data),
   delete: (id: string) =>
     apiCall<void>(`${OLD_BASE_URL}/products/${id}`, { method: "DELETE" }),
 };
 
 // Categories API (old API)
 export const categoriesApi = {
-  getAll: () => apiCall<any>(`${OLD_BASE_URL}/categories`).then(data => (data as any).data || data),
+  getAll: () =>
+    apiCall<any>(`${OLD_BASE_URL}/categories`).then(
+      (data) => (data as any).data || data
+    ),
   create: (category: { name: string }) =>
     apiCall<any>(`${OLD_BASE_URL}/categories`, {
       method: "POST",
       body: JSON.stringify(category),
-    }).then(data => (data as any).data || data),
+    }).then((data) => (data as any).data || data),
   update: (id: string, category: { name: string }) =>
     apiCall<any>(`${OLD_BASE_URL}/categories/${id}`, {
       method: "PUT",
       body: JSON.stringify(category),
-    }).then(data => (data as any).data || data),
+    }).then((data) => (data as any).data || data),
   delete: (id: string) =>
     apiCall<void>(`${OLD_BASE_URL}/categories/${id}`, { method: "DELETE" }),
 };
 
 // Orders API (old API)
 export const ordersApi = {
-  getAll: () => apiCall<any>(`${OLD_BASE_URL}/orders`).then(data => (data as any).data || data),
-  getByKudilId: (kudilId: string) => apiCall<any>(`${OLD_BASE_URL}/orders/${kudilId}`).then(data => (data as any).data || data),
+  getAll: () =>
+    apiCall<any>(`${OLD_BASE_URL}/orders`).then(
+      (data) => (data as any).data || data
+    ),
+  getByKudilId: (kudilId: string) =>
+    apiCall<any>(`${OLD_BASE_URL}/orders/${kudilId}`).then(
+      (data) => (data as any).data || data
+    ),
   addItem: (
     kudilId: string,
     item: {
@@ -542,12 +676,12 @@ export const ordersApi = {
     apiCall<any>(`${OLD_BASE_URL}/orders/${kudilId}/items`, {
       method: "POST",
       body: JSON.stringify(item),
-    }).then(data => (data as any).data || data),
+    }).then((data) => (data as any).data || data),
   updateItemQuantity: (kudilId: string, productId: string, quantity: number) =>
     apiCall<any>(`${OLD_BASE_URL}/orders/${kudilId}/items/${productId}`, {
       method: "PUT",
       body: JSON.stringify({ quantity }),
-    }).then(data => (data as any).data || data),
+    }).then((data) => (data as any).data || data),
   removeItem: (kudilId: string, productId: string) =>
     apiCall<void>(`${OLD_BASE_URL}/orders/${kudilId}/items/${productId}`, {
       method: "DELETE",
@@ -558,7 +692,7 @@ export const ordersApi = {
     apiCall<any>(`${OLD_BASE_URL}/orders/${kudilId}/complete`, {
       method: "POST",
       body: JSON.stringify({ completed }),
-    }).then(data => (data as any).data || data),
+    }).then((data) => (data as any).data || data),
 };
 
 // Billing API (old API)
@@ -572,20 +706,35 @@ export const billingApi = {
     apiCall<any>(`${OLD_BASE_URL}/bills/print`, {
       method: "POST",
       body: JSON.stringify(bill),
-    }).then(data => (data as any).data || data),
+    }).then((data) => (data as any).data || data),
 };
 
 // History API (old API)
 export const historyApi = {
-  getAll: () => apiCall<any>(`${OLD_BASE_URL}/history`).then(data => (data as any).data || data),
-  getByDate: (date: string) => apiCall<any>(`${OLD_BASE_URL}/history?date=${date}`).then(data => (data as any).data || data),
-  getById: (id: string) => apiCall<any>(`${OLD_BASE_URL}/history/${id}`).then(data => (data as any).data || data),
+  getAll: () =>
+    apiCall<any>(`${OLD_BASE_URL}/history`).then(
+      (data) => (data as any).data || data
+    ),
+  getByDate: (date: string) =>
+    apiCall<any>(`${OLD_BASE_URL}/history?date=${date}`).then(
+      (data) => (data as any).data || data
+    ),
+  getById: (id: string) =>
+    apiCall<any>(`${OLD_BASE_URL}/history/${id}`).then(
+      (data) => (data as any).data || data
+    ),
 };
 
 // Waiters API (old API)
-export const waitersApi = {
-  getAll: () => apiCall<any>(`${OLD_BASE_URL}/waiters`).then(data => (data as any).data || data),
-  getById: (id: string) => apiCall<any>(`${OLD_BASE_URL}/waiters/${id}`).then(data => (data as any).data || data),
+export const waitersApiLegacy = {
+  getAll: () =>
+    apiCall<any>(`${OLD_BASE_URL}/waiters`).then(
+      (data) => (data as any).data || data
+    ),
+  getById: (id: string) =>
+    apiCall<any>(`${OLD_BASE_URL}/waiters/${id}`).then(
+      (data) => (data as any).data || data
+    ),
   create: (waiter: {
     username: string;
     password: string;
@@ -597,24 +746,27 @@ export const waitersApi = {
     apiCall<any>(`${OLD_BASE_URL}/waiters`, {
       method: "POST",
       body: JSON.stringify(waiter),
-    }).then(data => (data as any).data || data),
+    }).then((data) => (data as any).data || data),
   update: (id: string, waiter: Partial<any>) =>
     apiCall<any>(`${OLD_BASE_URL}/waiters/${id}`, {
       method: "PUT",
       body: JSON.stringify(waiter),
-    }).then(data => (data as any).data || data),
-  delete: (id: string) => apiCall<void>(`${OLD_BASE_URL}/waiters/${id}`, { method: "DELETE" }),
+    }).then((data) => (data as any).data || data),
+  delete: (id: string) =>
+    apiCall<void>(`${OLD_BASE_URL}/waiters/${id}`, { method: "DELETE" }),
   addIssue: (waiterId: string, description: string) =>
     apiCall<any>(`${OLD_BASE_URL}/waiters/${waiterId}/issues`, {
       method: "POST",
       body: JSON.stringify({ description }),
-    }).then(data => (data as any).data || data),
+    }).then((data) => (data as any).data || data),
   getStats: (waiterId: string, date: string) =>
-    apiCall<any>(`${OLD_BASE_URL}/waiters/${waiterId}/stats?date=${date}`).then(data => (data as any).data || data),
+    apiCall<any>(`${OLD_BASE_URL}/waiters/${waiterId}/stats?date=${date}`).then(
+      (data) => (data as any).data || data
+    ),
   getCredentials: (waiterId: string) =>
     apiCall<{ username: string; password: string }>(
       `${OLD_BASE_URL}/waiters/${waiterId}/credentials`
-    ).then(data => (data as any).data || data),
+    ).then((data) => (data as any).data || data),
   updateCredentials: (
     waiterId: string,
     credentials: { username: string; password: string }
@@ -622,16 +774,25 @@ export const waitersApi = {
     apiCall<any>(`${OLD_BASE_URL}/waiters/${waiterId}/credentials`, {
       method: "PUT",
       body: JSON.stringify(credentials),
-    }).then(data => (data as any).data || data),
+    }).then((data) => (data as any).data || data),
 };
 
 // Analytics API (old API)
 export const analyticsApi = {
-  getSales: (date: string) => apiCall<any>(`${OLD_BASE_URL}/analytics/sales?date=${date}`).then(data => (data as any).data || data),
+  getSales: (date: string) =>
+    apiCall<any>(`${OLD_BASE_URL}/analytics/sales?date=${date}`).then(
+      (data) => (data as any).data || data
+    ),
   getTopProducts: (date: string, limit = 10) =>
-    apiCall<any[]>(`${OLD_BASE_URL}/analytics/products/top?date=${date}&limit=${limit}`).then(data => (data as any).data || data),
+    apiCall<any[]>(
+      `${OLD_BASE_URL}/analytics/products/top?date=${date}&limit=${limit}`
+    ).then((data) => (data as any).data || data),
   getNonSellingProducts: (date: string) =>
-    apiCall<any[]>(`${OLD_BASE_URL}/analytics/products/non-selling?date=${date}`).then(data => (data as any).data || data),
+    apiCall<any[]>(
+      `${OLD_BASE_URL}/analytics/products/non-selling?date=${date}`
+    ).then((data) => (data as any).data || data),
   getCategorySales: (date: string) =>
-    apiCall<any[]>(`${OLD_BASE_URL}/analytics/categories?date=${date}`).then(data => (data as any).data || data),
+    apiCall<any[]>(`${OLD_BASE_URL}/analytics/categories?date=${date}`).then(
+      (data) => (data as any).data || data
+    ),
 };

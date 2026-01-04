@@ -344,20 +344,31 @@
 //     </div>
 //   );
 // }
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Phone, Mail, RefreshCw, Users } from 'lucide-react';
-import { useApp } from '@/contexts/AppContext';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Phone, Mail, RefreshCw, User, UserPlus, Loader2 } from "lucide-react";
+import { useApp } from "@/contexts/AppContext";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { waitersApi } from "@/services/api";
 
 interface Waiter {
   id: string;
   name: string;
   mobile: string;
   email: string;
-  password: string;
+  password?: string;
   c_no: string;
   Shop: string;
 }
@@ -368,16 +379,22 @@ export default function Waiters() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Add Waiter State
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    mobile: "",
+    email: "",
+    password: "",
+  });
+
   // Use refs to prevent multiple loads
   const waitersLoadedRef = useRef(false);
   const loadingRef = useRef(false);
 
   const loadWaitersFromAPI = useCallback(async () => {
-    // Prevent multiple simultaneous loads
-    if (loadingRef.current) {
-      console.log('Waiters load already in progress, skipping...');
-      return;
-    }
+    if (loadingRef.current) return;
 
     try {
       loadingRef.current = true;
@@ -388,33 +405,27 @@ export default function Waiters() {
         throw new Error("Shop ID (c_no) is not available");
       }
 
-      console.log(`Fetching waiters for c_no: ${appParams.c_no}, type: ${appParams.type}`);
+      //   console.log(
+      //     `Fetching waiters for c_no: ${appParams.c_no}, type: ${appParams.type}`
+      //   );
 
-      const response = await fetch(
-        `https://deepikagroups.in/admin/api/get_waiters.php?c_no=${appParams.c_no}&type=${appParams.type}`
+      const response = await waitersApi.getShopWaiters(
+        appParams.c_no,
+        appParams.type
       );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.Waiters && data.Waiters.length > 0) {
-        setWaiters(data.Waiters);
+      if (response && response.Waiters) {
+        setWaiters(response.Waiters);
         waitersLoadedRef.current = true;
-        console.log(`Loaded ${data.Waiters.length} waiters`);
-        toast.success(`Loaded ${data.Waiters.length} waiter(s)`);
       } else {
         setWaiters([]);
-        console.log("No waiters found in API response");
-        toast.info("No waiters found for this shop");
       }
     } catch (error) {
       console.error("Error fetching waiters:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to load waiters";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to load waiters";
       setError(errorMessage);
-      toast.error(errorMessage);
+      //   toast.error(errorMessage);
       setWaiters([]);
     } finally {
       setLoading(false);
@@ -422,7 +433,6 @@ export default function Waiters() {
     }
   }, [appParams?.c_no, appParams?.type]);
 
-  // Load waiters only once on mount or when params change
   useEffect(() => {
     if (!waitersLoadedRef.current && appParams?.c_no) {
       loadWaitersFromAPI();
@@ -434,40 +444,60 @@ export default function Waiters() {
     loadWaitersFromAPI();
   };
 
-  if (loading) {
+  const handleAddWaiter = async () => {
+    if (
+      !formData.name ||
+      !formData.mobile ||
+      !formData.email ||
+      !formData.password
+    ) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await waitersApi.addWaiter({
+        c_no: appParams.c_no,
+        name: formData.name,
+        mobile: formData.mobile,
+        email: formData.email,
+        password: formData.password,
+        user_id: "1", // Hardcoded as per request/example
+      });
+
+      toast.success("Waiter added successfully");
+      setIsAddDialogOpen(false);
+      setFormData({ name: "", mobile: "", email: "", password: "" });
+      handleRefresh(); // Reload list
+    } catch (error) {
+      console.error("Error adding waiter:", error);
+      toast.error("Failed to add waiter");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (loading && !waitersLoadedRef.current) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
         <div className="text-center">
           <RefreshCw className="h-8 w-8 animate-spin mx-auto text-primary mb-4" />
           <div className="text-lg">Loading waiters...</div>
-          <div className="text-sm text-muted-foreground mt-2">
-            Shop: {appParams?.c_no || 'Unknown'}
-          </div>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  // Show error only if no waiters loaded
+  if (error && waiters.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
-        <Card className="p-8 max-w-md">
-          <div className="text-center">
-            <div className="text-red-500 mb-4">⚠️ Error</div>
-            <h3 className="text-lg font-semibold mb-2">Failed to Load Waiters</h3>
-            <p className="text-sm text-muted-foreground mb-4">{error}</p>
-            <div className="space-y-2">
-              <Button onClick={handleRefresh} className="w-full">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Retry
-              </Button>
-              <div className="text-xs text-muted-foreground">
-                <p>Debug Info:</p>
-                <p>Shop ID: {appParams?.c_no || 'Not set'}</p>
-                <p>Type: {appParams?.type || 'Not set'}</p>
-              </div>
-            </div>
-          </div>
+        <Card className="p-8 max-w-md text-center">
+          <div className="text-red-500 mb-4">⚠️ Error</div>
+          <h3 className="text-lg font-semibold mb-2">Failed to Load Waiters</h3>
+          <p className="text-sm text-muted-foreground mb-4">{error}</p>
+          <Button onClick={handleRefresh}>Retry</Button>
         </Card>
       </div>
     );
@@ -477,7 +507,9 @@ export default function Waiters() {
     <div className="p-4 md:p-8">
       <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Waiter Management</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+            Waiter Management
+          </h1>
           <p className="text-muted-foreground mt-1">
             View all waiters • {waiters.length} waiter(s)
           </p>
@@ -485,15 +517,96 @@ export default function Waiters() {
             Shop #{appParams?.c_no} • {appParams?.type}
           </p>
         </div>
-        <Button onClick={handleRefresh} variant="outline" size="icon">
-          <RefreshCw className="h-4 w-4" />
-        </Button>
+        <div className="flex gap-2">
+          {" "}
+          {/* Keep the wrapper for alignment */}
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full md:w-auto">
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add Waiter
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Add New Waiter</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    placeholder="Enter waiter name"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="mobile">Mobile Number</Label>
+                  <Input
+                    id="mobile"
+                    placeholder="Enter mobile number"
+                    type="tel"
+                    value={formData.mobile}
+                    onChange={(e) =>
+                      setFormData({ ...formData, mobile: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    placeholder="Enter email address"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    placeholder="Set password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsAddDialogOpen(false)}
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleAddWaiter} disabled={isSubmitting}>
+                  {isSubmitting && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Add Waiter
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Button onClick={handleRefresh} variant="outline" size="icon">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {waiters.length === 0 ? (
         <Card className="p-12">
           <div className="text-center">
-            <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No waiters found</h3>
             <p className="text-muted-foreground mb-4">
               No waiters are configured for this shop yet.
@@ -503,11 +616,16 @@ export default function Waiters() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {waiters.map((waiter) => (
-            <Card key={waiter.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+            <Card
+              key={waiter.id}
+              className="overflow-hidden hover:shadow-lg transition-shadow"
+            >
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-foreground mb-2">{waiter.name}</h3>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      {waiter.name}
+                    </h3>
                     <Badge variant="default" className="mb-2">
                       Active
                     </Badge>
@@ -534,11 +652,15 @@ export default function Waiters() {
                   <div className="space-y-1 text-xs text-muted-foreground">
                     <div className="flex justify-between">
                       <span>Waiter ID:</span>
-                      <span className="font-medium text-foreground">{waiter.id}</span>
+                      <span className="font-medium text-foreground">
+                        {waiter.id}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Shop:</span>
-                      <span className="font-medium text-foreground">{waiter.c_no}</span>
+                      <span className="font-medium text-foreground">
+                        {waiter.c_no}
+                      </span>
                     </div>
                   </div>
                 </div>

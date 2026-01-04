@@ -363,11 +363,11 @@
 //     </div>
 //   );
 // }
-import { useState, useMemo } from 'react';
-import { Loader2, Search, ChevronDown, ChevronRight } from 'lucide-react';
-import { useApp } from '@/contexts/AppContext';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { useState, useMemo } from "react";
+import { Loader2, Search, ChevronDown, ChevronRight } from "lucide-react";
+import { useApp } from "@/contexts/AppContext";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -375,30 +375,32 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+} from "@/components/ui/collapsible";
 
 export default function Products() {
   const { products, categories, loading } = useApp();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(() => {
-    // Initialize all categories as open
-    const initial: Record<string, boolean> = {};
-    categories.forEach(cat => {
-      initial[cat.id] = true;
-    });
-    return initial;
-  });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(
+    () => {
+      // Initialize all categories as open
+      const initial: Record<string, boolean> = {};
+      categories.forEach((cat) => {
+        initial[cat.id] = true;
+      });
+      return initial;
+    }
+  );
 
   // Memoize filtered products to prevent recalculation
   const filteredProducts = useMemo(() => {
     if (!searchQuery.trim()) return products;
     const query = searchQuery.toLowerCase();
-    return products.filter(product =>
+    return products.filter((product) =>
       product.name.toLowerCase().includes(query)
     );
   }, [products, searchQuery]);
@@ -406,7 +408,7 @@ export default function Products() {
   // Memoize grouped products
   const productsByCategory = useMemo(() => {
     const grouped: Record<string, typeof products> = {};
-    filteredProducts.forEach(product => {
+    filteredProducts.forEach((product) => {
       const categoryId = product.categoryId;
       if (!grouped[categoryId]) {
         grouped[categoryId] = [];
@@ -417,13 +419,13 @@ export default function Products() {
   }, [filteredProducts]);
 
   const getCategoryName = (categoryId: string) => {
-    return categories.find(c => c.id === categoryId)?.name || 'Unknown';
+    return categories.find((c) => c.id === categoryId)?.name || "Unknown";
   };
 
   const toggleCategory = (categoryId: string) => {
-    setOpenCategories(prev => ({
+    setOpenCategories((prev) => ({
       ...prev,
-      [categoryId]: !prev[categoryId]
+      [categoryId]: !prev[categoryId],
     }));
   };
 
@@ -443,7 +445,9 @@ export default function Products() {
     <div className="p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground">Products</h1>
-        <p className="text-muted-foreground mt-1">View all products ({products.length} items)</p>
+        <p className="text-muted-foreground mt-1">
+          View all products ({products.length} items)
+        </p>
       </div>
 
       {/* Search Input */}
@@ -460,13 +464,14 @@ export default function Products() {
       {/* Filtered results count */}
       {searchQuery && (
         <p className="text-sm text-muted-foreground mb-4">
-          Found {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} matching "{searchQuery}"
+          Found {filteredProducts.length} product
+          {filteredProducts.length !== 1 ? "s" : ""} matching "{searchQuery}"
         </p>
       )}
 
       {/* Products grouped by category */}
       <div className="space-y-4">
-        {categories.map(category => {
+        {categories.map((category) => {
           const categoryProducts = productsByCategory[category.id] || [];
           if (categoryProducts.length === 0) return null;
 
@@ -495,14 +500,30 @@ export default function Products() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Name</TableHead>
+                        <TableHead className="text-right">Stock</TableHead>
                         <TableHead className="text-right">Price</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {categoryProducts.map((product) => (
                         <TableRow key={product.id}>
-                          <TableCell className="font-medium">{product.name}</TableCell>
-                          <TableCell className="text-right">₹{product.price}</TableCell>
+                          <TableCell className="font-medium">
+                            {product.name}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <span
+                              className={
+                                Number(product.stock) <= 10
+                                  ? "text-destructive font-bold"
+                                  : ""
+                              }
+                            >
+                              {product.stock}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            ₹{product.price}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -516,7 +537,7 @@ export default function Products() {
 
       {filteredProducts.length === 0 && (
         <p className="text-muted-foreground text-center py-8">
-          {searchQuery ? 'No products match your search' : 'No products found'}
+          {searchQuery ? "No products match your search" : "No products found"}
         </p>
       )}
     </div>
