@@ -579,7 +579,7 @@ export default function BillScreen() {
     }
   }, [loadBillData]);
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
     if (!tableOrder || tableOrder.items.length === 0) {
       toast.error("Cannot print an empty bill");
       return;
@@ -821,12 +821,44 @@ export default function BillScreen() {
       printWindow.onload = () => {
         printWindow.focus();
         printWindow.print();
-        printWindow.close();
+
+        // Wait for print dialog to close, then update status
+        setTimeout(async () => {
+          printWindow.close();
+
+          // Update table order status via API after print completes
+          try {
+            const statusUpdatePayload = {
+              c_no: appParams?.c_no || "7",
+              table_id: tableOrder.table_id,
+              waiter_id: tableOrder.waiter_id,
+              totalAmount: tableOrder.subtotal,
+              user_id: 2,
+              status: 2
+            };
+
+            const response = await fetch("https://deepikagroups.in/admin/api/update_tableOrderStatus.php", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(statusUpdatePayload),
+            });
+
+            if (response.ok) {
+              console.log("Table order status updated successfully");
+            } else {
+              console.error("Failed to update table order status");
+            }
+          } catch (error) {
+            console.error("Error updating table order status:", error);
+          }
+        }, 1000);
       };
     }
 
     toast.success("Bill sent to printer");
-    setTimeout(() => navigate("/"), 500);
+    setTimeout(() => navigate("/"), 1500);
   };
 
   if (loading) {

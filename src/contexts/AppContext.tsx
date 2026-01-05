@@ -1391,10 +1391,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       setLoading(true);
-      const [ordersData, historyData, waitersData] = await Promise.all([
+      const [ordersData, historyData, waitersData = []] = await Promise.all([
         ordersApi.getAll().catch(() => []),
         historyApi.getAll().catch(() => []),
-        waitersApi.getAll().catch(() => []),
+        //waitersApi.getAll().catch(() => []),
       ]);
 
       const storedCompletions = localStorage.getItem('tableCompletions');
@@ -1616,15 +1616,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addWaiter = async (waiter: Omit<Waiter, "id" | "ordersCompleted" | "issues">) => {
     try {
-      const newWaiter = await waitersApi.create({
-        username: waiter.username || "",
-        password: waiter.password || "",
-        name: waiter.name,
-        phone: waiter.phone,
-        email: waiter.email,
-        status: waiter.status,
-      });
-      setWaiters((prev) => [...prev, newWaiter]);
+      // const newWaiter = await waitersApi.create({
+      //   username: waiter.username || "",
+      //   password: waiter.password || "",
+      //   name: waiter.name,
+      //   phone: waiter.phone,
+      //   email: waiter.email,
+      //   status: waiter.status,
+      // });
+      // setWaiters((prev) => [...prev, newWaiter]);
 
       toast({
         title: "Waiter added",
@@ -1641,8 +1641,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const updateWaiter = async (id: string, waiter: Partial<Waiter>) => {
     try {
-      const updated = await waitersApi.update(id, waiter);
-      setWaiters((prev) => prev.map((w) => (w.id === id ? updated : w)));
+      ///const updated = await waitersApi.update(id, waiter);
+      //setWaiters((prev) => prev.map((w) => (w.id === id ? updated : w)));
 
       toast({
         title: "Waiter updated",
@@ -1659,8 +1659,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const deleteWaiter = async (id: string) => {
     try {
-      await waitersApi.delete(id);
-      setWaiters((prev) => prev.filter((w) => w.id !== id));
+      // await waitersApi.delete(id);
+      // setWaiters((prev) => prev.filter((w) => w.id !== id));
 
       toast({
         title: "Waiter deleted",
@@ -1677,12 +1677,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addWaiterIssue = async (waiterId: string, description: string) => {
     try {
-      const issue = await waitersApi.addIssue(waiterId, description);
-      setWaiters((prev) =>
-        prev.map((w) =>
-          w.id === waiterId ? { ...w, issues: [...w.issues, issue] } : w
-        )
-      );
+      //const issue = await waitersApi.addIssue(waiterId, description);
+      //setWaiters((prev) =>
+      //  prev.map((w) =>
+      //    w.id === waiterId ? { ...w, issues: [...w.issues, issue] } : w
+      //  )
+      //);
 
       toast({
         title: "Issue added",
